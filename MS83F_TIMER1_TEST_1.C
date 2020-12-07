@@ -24,10 +24,12 @@
 
 #define DATA_LED		PORTC
 #define  RED_LED     0x02
-#define  LED_NUM    (5+1)
 #define PWM_OK      30 
-unsigned char loop = 0;
+// #define  LED_NUM    (4+1)  // 5 leds 连续闪烁
+#define  LED_NUM    (5+1)  // 3 leds 连续闪烁
 
+static unsigned char loop = 0;
+static  unsigned char cnt1 = 0;
 void delay100us(void)
 {
     unsigned char i=250;
@@ -39,13 +41,14 @@ void delay100us(void)
 
 void delay1s(unsigned char i)
 {
-   unsigned char j = 150;
+   unsigned char j = 100;
     while(i--)
     {
+         CLRWDT();
         while(j--){
             delay100us();
        }
-       CLRWDT();
+      
     } 
 }
 /*====================================================
@@ -56,7 +59,7 @@ void delay1s(unsigned char i)
 ====================================================*/
 void interrupt ISR(void)
 {
-    static  unsigned char cnt1 = 0,cnt2=0;
+    
 	if(TMR1IE&&TMR1IF)
 	{
 		TMR1IF = 0;
@@ -118,6 +121,7 @@ void DEVICE_INIT(void)
 ====================================================*/
 void TIMER1_INIT(void)
 {
+    cnt1 =0;
 	TMR1H = 0xfe;
     TMR1L = 0x0b;			//Timer1初值为0x3CAF=15535
 	T1CON = 0B00100001;		//预分频值=1:4
@@ -138,13 +142,49 @@ void ENABLE_INTERRUPT(void)
 } 
 //注:Timer1属于外设,所以要开启Timer1溢出中断，必须把外设总闸PEIE开启
 /*====================================================
-*函数名:main
+*函数名:main 3 led 1s 连续闪烁
+*功能:主函数
+*输入参数:无
+*返回参数:无
+====================================================*/
+void main3(void)
+{
+
+	DEVICE_INIT();			//器件初始化
+	TIMER1_INIT();			//TIMER1初始化
+	ENABLE_INTERRUPT();
+	while(1)
+	{
+        CLRWDT();
+        DEVICE_INIT();			//器件初始化
+	    TIMER1_INIT();			//TIMER1初始化
+	   ENABLE_INTERRUPT();
+        for( loop=2; loop <= LED_NUM; loop++){
+            CLRWDT();
+			 if(loop == LED_NUM){ 
+				loop = 2;          
+			}		 
+            
+			 PEIE = 0;
+             DATA_LED = 0;
+             TIMER1_INIT();
+			 delay1s(2); 
+             
+			 PEIE = 1;   
+			 delay1s(2); 
+        }
+        
+	}
+}
+/*====================================================
+*函数名:main 5 led 1s 连续闪烁
 *功能:主函数
 *输入参数:无
 *返回参数:无
 ====================================================*/
 void main(void)
 {
+
 	DEVICE_INIT();			//器件初始化
 	TIMER1_INIT();			//TIMER1初始化
 	ENABLE_INTERRUPT();
