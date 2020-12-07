@@ -39,7 +39,7 @@ void delay100us(void)
 
 void delay1s(unsigned char i)
 {
-   unsigned char j = 250;
+   unsigned char j = 150;
     while(i--)
     {
         while(j--){
@@ -68,7 +68,7 @@ void interrupt ISR(void)
             cnt1 =0;
         }
 
-             if( cnt1 %5 == 0){
+             if( cnt1 %3 == 0){
                  DATA_LED  = 1 << loop;
                 
             }else{
@@ -162,9 +162,11 @@ void main(void)
             
 			 PEIE = 0;
              DATA_LED = 0;
-			 delay1s(10); 
+             TIMER1_INIT();
+			 delay1s(2); 
+             
 			 PEIE = 1;   
-			 delay1s(10); 
+			 delay1s(2); 
         }
         
 	}
